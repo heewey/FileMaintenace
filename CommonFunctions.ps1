@@ -223,7 +223,8 @@ function Invoke-Action {
 [CmdletBinding()]    
 Param(
 [String][parameter(position = 0, mandatory)]
-[ValidatePattern("^(Move|Copy|Delete|AddTimeStamp|NullClear|Rename|MakeNew(FileWithValue|Folder)|(7z|7zZip|^)(Compress|Archive)(AndAddTimeStamp|$))$")]
+[ValidatePattern("^(Move|Copy|Delete|AddTimeStamp|NullClear|Rename|MakeNew(FileWithValue|Folder)|(
+|7zZip|^)(Compress|Archive)(AndAddTimeStamp|$))$")]
 [Alias("Type")]$ActionType,
 
 [String][parameter(position = 1, mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName)]
@@ -300,7 +301,7 @@ process {
 
         '^(Archive|ArchiveAndAddTimeStamp)$' {
 #           $ActionTo = $ActionTo -replace "\[" , "````["
-            Compress-Archive -LiteralPath $ActionFrom -DestinationPath $ActionTo -Update > $NULL  -ErrorAction Stop
+            Compress-Archive -LiteralPath $ActionFrom -DestinationPath $ActionTo -Force > $NULL  -ErrorAction Stop
             }                  
 
         '^((7z|7zZip)(Archive|Compress)($|AndAddTimeStamp))$' {
@@ -318,12 +319,12 @@ process {
             Switch -Regex ($ActionType){
             
                 'Compress' {
-                    [String]$errorDetail = .\7z.exe a $ActionTo $ActionFrom -t"$7zType" 2>&1
+                    [String]$errorDetail = .\7z.exe u $ActionTo $ActionFrom -t"$7zType" 2>&1
                     Break
                     }
 
                 'Archive' {
-                    [String]$errorDetail = .\7z.exe u $ActionTo $ActionFrom -t"$7zType" 2>&1
+                    [String]$errorDetail = .\7z.exe a $ActionTo $ActionFrom -t"$7zType" 2>&1
                     Break
                     }
             
@@ -366,7 +367,7 @@ process {
             Return
             }
 
-        #Continue‚µ‚È‚¢ê‡‚ÍI—¹ˆ—‚Öi‚Þ
+        #Continueã—ãªã„å ´åˆã¯çµ‚äº†å‡¦ç†ã¸é€²ã‚€
         IF ($ForceEndLoop) {
             $Script:ErrorFlag = $TRUE
             $Script:ForceFinalize = $TRUE
@@ -1069,10 +1070,10 @@ begin {
     $scriptExecUser = ([System.Security.Principal.WindowsIdentity]::GetCurrent()).Name
     $logFormattedDate = (Get-Date).ToString($LogDateFormat)
 
-#PowerShell‚Å‚ÍƒqƒAƒhƒLƒ…ƒƒ“ƒg‚Ì‰üs‚ÍLF‚Æ‚µ‚Äˆ—‚³‚ê‚é
-#‚µ‚©‚µ‚È‚ª‚çA‘¼‚ÌOracle‚©‚ç‚Ìo—Í‚ÍLF&CR‚Ì‚½‚ßAWindowsƒƒ‚’ ‚ÅŠJ‚­‚Æ‰üsƒR[ƒh‚ª¬Ý‚µ‚Ä³‚µ‚­ˆ—‚³‚ê‚È‚¢
-#‚æ‚Á‚ÄA–¾Ž¦“I‚ÉCR‚ð’Ç‰Á‚µ‚ÄSQLLog‚Å‰üsƒR[ƒh‚ª¬Ý‚µ‚È‚¢‚æ‚¤‚É‚·‚é
-#Sakura Editor“™‚Å‚Í‰üsƒR[ƒh¬Ý‚à³‚µ‚­ˆ—‚³‚ê‚é
+#PowerShellã§ã¯ãƒ’ã‚¢ãƒ‰ã‚­ãƒ¥ãƒ¡ãƒ³ãƒˆã®æ”¹è¡Œã¯LFã¨ã—ã¦å‡¦ç†ã•ã‚Œã‚‹
+#ã—ã‹ã—ãªãŒã‚‰ã€ä»–ã®Oracleã‹ã‚‰ã®å‡ºåŠ›ã¯LF&CRã®ãŸã‚ã€Windowsãƒ¡ãƒ¢å¸³ã§é–‹ãã¨æ”¹è¡Œã‚³ãƒ¼ãƒ‰ãŒæ··åœ¨ã—ã¦æ­£ã—ãå‡¦ç†ã•ã‚Œãªã„
+#ã‚ˆã£ã¦ã€æ˜Žç¤ºçš„ã«CRã‚’è¿½åŠ ã—ã¦SQLLogã§æ”¹è¡Œã‚³ãƒ¼ãƒ‰ãŒæ··åœ¨ã—ãªã„ã‚ˆã†ã«ã™ã‚‹
+#Sakura Editorç­‰ã§ã¯æ”¹è¡Œã‚³ãƒ¼ãƒ‰æ··åœ¨ã‚‚æ­£ã—ãå‡¦ç†ã•ã‚Œã‚‹
 
 $logWrite = @"
 `r
@@ -1151,7 +1152,7 @@ function Test-OracleBackUpMode {
     $invokeResult = Invoke-SQL -SQLCommand $DBCheckBackUpMode -SQLName "DBCheckBackUpMode" -SQLLogPath $SQLLogPath
 
    
-    #•¶Žš—ñ”z—ñ‚É•ÏŠ·‚·‚é
+    #æ–‡å­—åˆ—é…åˆ—ã«å¤‰æ›ã™ã‚‹
     $sqlLog = $invokeResult.Log -replace "`r","" |  ForEach-Object {$_ -split "`n"}
 
     $normalModeCount = 0
